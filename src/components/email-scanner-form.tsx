@@ -1,7 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { handleScanEmail } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ function SubmitButton() {
 }
 
 export function EmailScannerForm() {
-  const [state, formAction] = useFormState(handleScanEmail, initialState);
+  const [state, formAction] = useActionState(handleScanEmail, initialState);
   const [currentView, setCurrentView] = useState<'form' | 'results'>('form');
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [activeResult, setActiveResult] = useState<ScanResult | null>(null);
