@@ -108,11 +108,12 @@ Email Address: {{{email}}}
 Consider the following factors when determining the security score and risks:
 - Data breaches involving the email address or associated services (e.g., Have I Been Pwned).
 - Discoveries on the dark web.
-- Phishing incidents targeting the email address or associated services.
+- Phishing incidents targeting the email address or associated services. This includes analyzing the risk of the user clicking on a malicious link that leads to a breach.
 - Known spam campaigns involving the email address.
 - Weak passwords or compromised credentials associated with the email address.
 - Security settings and configurations of the email account (e.g., 2FA, recovery options).
 - Domain security (e.g., DMARC, SPF records).
+- Risks related to third-party application authorizations (e.g., connecting social media apps, games, or other services to the email account). Report on potential dangers even if you cannot confirm a specific connection has been made.
 
 Be critical of the timeline; an email address cannot be part of a breach that occurred before it was plausibly created.
 
