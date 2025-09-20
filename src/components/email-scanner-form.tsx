@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, ArrowRight, CheckCircle, ChevronRight, Clock, HelpCircle, History, Info, KeyRound, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SecurityScoreGauge } from "./security-score-gauge";
-import type { ScanEmailForSecurityRisksOutput } from "@/ai/flows/scan-email-for-security-risks";
+import type { ScanEmailForSecurityRisksOutput, QuizAnswer } from "@/ai/flows/scan-email-for-security-risks";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ type ScanResult = {
     email: string;
     data: ScanEmailForSecurityRisksOutput;
     timestamp: string;
+    quizAnswers?: QuizAnswer[];
 }
 
 const initialState: {
@@ -71,6 +72,16 @@ export function EmailScannerForm() {
     }
   }, []);
 
+  const updateHistory = (newResult: ScanResult) => {
+      const updatedHistory = [newResult, ...scanHistory.filter(item => item.email !== newResult.email)].slice(0, 5); // Keep last 5 scans
+      setScanHistory(updatedHistory);
+      try {
+        localStorage.setItem('scanHistory', JSON.stringify(updatedHistory));
+      } catch (error) {
+        console.error("Failed to save scan history to localStorage", error);
+      }
+  }
+
   useEffect(() => {
     if (state.error) {
       toast({
@@ -86,19 +97,21 @@ export function EmailScannerForm() {
         data: state.data,
         timestamp: new Date().toISOString(),
       };
-
-      const updatedHistory = [newResult, ...scanHistory.filter(item => item.email !== state.email)].slice(0, 5); // Keep last 5 scans
-      setScanHistory(updatedHistory);
-      try {
-        localStorage.setItem('scanHistory', JSON.stringify(updatedHistory));
-      } catch (error) {
-        console.error("Failed to save scan history to localStorage", error);
-      }
       
+      updateHistory(newResult);
       setActiveResult(newResult);
       setCurrentView('results');
     }
   }, [state, toast]);
+
+  const handleQuizCompletion = (answers: QuizAnswer[]) => {
+    if (activeResult) {
+      const updatedResult = { ...activeResult, quizAnswers: answers };
+      setActiveResult(updatedResult);
+      updateHistory(updatedResult);
+    }
+  };
+
 
   const handleScanAnother = () => {
     setCurrentView('form');
@@ -259,7 +272,11 @@ export function EmailScannerForm() {
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <SecurityQuiz questions={data.securityQuiz} />
+                        <SecurityQuiz 
+                            questions={data.securityQuiz} 
+                            initialAnswers={activeResult.quizAnswers}
+                            onQuizComplete={handleQuizCompletion}
+                        />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

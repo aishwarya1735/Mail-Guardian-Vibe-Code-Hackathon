@@ -52,6 +52,16 @@ const QuizQuestionSchema = z.object({
     .string()
     .describe('An explanation of why the answer is correct.'),
 });
+export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
+
+const QuizAnswerSchema = z.object({
+  question: z.string(),
+  selectedAnswer: z.string(),
+  correctAnswer: z.string(),
+  isCorrect: z.boolean(),
+});
+export type QuizAnswer = z.infer<typeof QuizAnswerSchema>;
+
 
 const ScanEmailForSecurityRisksOutputSchema = z.object({
   securityScore: z
@@ -107,7 +117,7 @@ Based on your analysis, provide:
 2.  A score breakdown with at least 3 categories explaining how the total score was calculated (e.g., "Data Breaches", "Account Configuration", "Domain Security"). For each category, provide the score awarded, the max possible score, and a short description.
 3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021').
 4.  Actionable tips to improve security.
-5.  A security quiz with 2-3 fun and interesting questions about common security traps where a user might be misled. Each question should have multiple-choice options, a correct answer, and a brief explanation.
+5.  A security quiz with 2-3 fun and interesting questions about common security traps where a user might be misled. Each question should have multiple-choice options, a single correct answer, and a brief explanation.
 
 Example breakdown category:
 - Category: Data Breaches
