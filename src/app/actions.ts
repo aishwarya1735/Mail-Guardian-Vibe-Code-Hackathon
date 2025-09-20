@@ -17,6 +17,7 @@ export async function handleScanEmail(
 ): Promise<{
   data: ScanEmailForSecurityRisksOutput | null;
   error: string | null;
+  email?: string;
 }> {
   const email = formData.get('email');
 
@@ -31,7 +32,7 @@ export async function handleScanEmail(
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const result = await scanEmailForSecurityRisks({ email: validation.data });
-    return { data: result, error: null };
+    return { data: result, error: null, email: validation.data };
   } catch (error) {
     console.error('Error scanning email:', error);
     return {
