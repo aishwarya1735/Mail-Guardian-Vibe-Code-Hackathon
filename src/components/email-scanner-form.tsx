@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { handleScanEmail } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowRight, CheckCircle, ChevronRight, Clock, History, Info, KeyRound, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle, ChevronRight, Clock, HelpCircle, History, Info, KeyRound, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SecurityScoreGauge } from "./security-score-gauge";
 import type { ScanEmailForSecurityRisksOutput } from "@/ai/flows/scan-email-for-security-risks";
@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { SecurityQuiz } from "./security-quiz";
 
 type ScanResult = {
     email: string;
@@ -114,8 +115,8 @@ export function EmailScannerForm() {
     setCurrentView('results');
   }
 
-  const getRiskIcon = (risk: string) => {
-    const lowerRisk = risk.toLowerCase();
+  const getRiskIcon = (risk: { description: string }) => {
+    const lowerRisk = risk.description.toLowerCase();
     if (lowerRisk.includes("breach") || lowerRisk.includes("leaked") || lowerRisk.includes("compromised")) {
       return <KeyRound className="h-5 w-5 text-destructive" />;
     }
@@ -208,7 +209,12 @@ export function EmailScannerForm() {
                             {data.risksIdentified.map((risk, index) => (
                                 <li key={index} className="flex items-start gap-4">
                                     <div className="mt-1">{getRiskIcon(risk)}</div>
-                                    <span className="flex-1 text-sm">{risk}</span>
+                                    <div className="flex-1 text-sm">
+                                      <p>{risk.description}</p>
+                                      {risk.source && (
+                                        <p className="text-xs text-muted-foreground mt-1">Source: <span className="font-medium text-foreground">{risk.source}</span></p>
+                                      )}
+                                    </div>
                                 </li>
                             ))}
                             </ul>
@@ -243,6 +249,17 @@ export function EmailScannerForm() {
                                 <p>Your security posture is strong. Keep it up!</p>
                             </div>
                         )}
+                    </AccordionContent>
+                </AccordionItem>
+                 <AccordionItem value="item-3">
+                    <AccordionTrigger className="font-semibold">
+                         <div className="flex items-center gap-2">
+                            <HelpCircle className="text-primary"/>
+                            Security Awareness Quiz
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <SecurityQuiz questions={data.securityQuiz} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

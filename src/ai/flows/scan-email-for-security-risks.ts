@@ -22,10 +22,35 @@ export type ScanEmailForSecurityRisksInput = z.infer<
 >;
 
 const ScoreBreakdownSchema = z.object({
-    category: z.string().describe('The category of the security check (e.g., "Data Breaches", "2FA Enablement").'),
-    score: z.number().describe('The score awarded for this category.'),
-    maxScore: z.number().describe('The maximum possible score for this category.'),
-    description: z.string().describe('A brief explanation of why this score was given.'),
+  category: z
+    .string()
+    .describe(
+      'The category of the security check (e.g., "Data Breaches", "2FA Enablement").'
+    ),
+  score: z.number().describe('The score awarded for this category.'),
+  maxScore: z.number().describe('The maximum possible score for this category.'),
+  description: z
+    .string()
+    .describe('A brief explanation of why this score was given.'),
+});
+
+const RiskSchema = z.object({
+  description: z.string().describe('A description of the identified risk.'),
+  source: z
+    .string()
+    .optional()
+    .describe('The source of the risk, if available (e.g., a specific data breach).'),
+});
+
+const QuizQuestionSchema = z.object({
+  question: z.string().describe('The quiz question.'),
+  options: z.array(z.string()).describe('A list of possible answers.'),
+  correctAnswer: z
+    .string()
+    .describe('The correct answer from the options list.'),
+  explanation: z
+    .string()
+    .describe('An explanation of why the answer is correct.'),
 });
 
 const ScanEmailForSecurityRisksOutputSchema = z.object({
@@ -34,15 +59,20 @@ const ScanEmailForSecurityRisksOutputSchema = z.object({
     .min(0)
     .max(100)
     .describe('A security score from 0 to 100, with 100 being the best.'),
-  scoreBreakdown: z.array(ScoreBreakdownSchema).describe('A detailed breakdown of how the security score was calculated.'),
+  scoreBreakdown: z
+    .array(ScoreBreakdownSchema)
+    .describe('A detailed breakdown of how the security score was calculated.'),
   risksIdentified: z
-    .array(z.string())
+    .array(RiskSchema)
     .describe('A list of security risks identified for the email address.'),
   actionableTips: z
     .array(z.string())
     .describe(
       'A list of actionable tips to improve the email address security.'
     ),
+  securityQuiz: z
+    .array(QuizQuestionSchema)
+    .describe('A short quiz with 2-3 security-related questions.'),
 });
 export type ScanEmailForSecurityRisksOutput = z.infer<
   typeof ScanEmailForSecurityRisksOutputSchema
@@ -60,7 +90,7 @@ const scanEmailForSecurityRisksPrompt = ai.definePrompt({
   output: {schema: ScanEmailForSecurityRisksOutputSchema},
   prompt: `You are an AI security assistant that analyzes email addresses for potential security risks.
 
-You will receive an email address as input and should provide a security score, a detailed score breakdown, a list of identified risks, and actionable tips to improve security.
+You will receive an email address as input and should provide a security score, a detailed score breakdown, a list of identified risks, actionable tips, and a security quiz.
 
 Email Address: {{{email}}}
 
@@ -75,8 +105,9 @@ Consider the following factors when determining the security score and risks:
 Based on your analysis, provide:
 1.  A total security score (0-100).
 2.  A score breakdown with at least 3 categories explaining how the total score was calculated (e.g., "Data Breaches", "Account Configuration", "Domain Security"). For each category, provide the score awarded, the max possible score, and a short description.
-3.  A list of identified risks.
+3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021').
 4.  Actionable tips to improve security.
+5.  A security quiz with 2-3 fun and interesting questions about common security traps where a user might be misled. Each question should have multiple-choice options, a correct answer, and a brief explanation.
 
 Example breakdown category:
 - Category: Data Breaches
