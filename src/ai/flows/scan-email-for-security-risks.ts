@@ -114,6 +114,8 @@ Consider the following factors when determining the security score and risks:
 - Security settings and configurations of the email account (e.g., 2FA, recovery options).
 - Domain security (e.g., DMARC, SPF records).
 
+Be critical of the timeline; an email address cannot be part of a breach that occurred before it was plausibly created.
+
 Based on your analysis, provide:
 1.  A total security score (0-100).
 2.  A score breakdown with at least 3 categories explaining how the total score was calculated (e.g., "Data Breaches", "Account Configuration", "Domain Security"). For each category, provide the score awarded, the max possible score, and a short description.
