@@ -111,25 +111,30 @@ export function SecurityQuiz({ questions, initialAnswers, onQuizComplete }: Secu
             <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-center">Quiz Review</h3>
                 <div className="space-y-6">
-                    {answers.map((answer, index) => (
-                        <div key={index}>
-                            <p className="font-semibold">{index + 1}. {answer.question}</p>
-                             <div className="mt-2 space-y-2 text-sm">
-                                {questions[index].options.map(option => (
-                                    <div key={option} className={`flex items-start gap-3 ${getReviewOptionStyle(option, answer)}`}>
-                                      <span className="w-5 h-5 flex-shrink-0">
-                                          {option === answer.selectedAnswer && !answer.isCorrect && <XCircle className="h-5 w-5 text-destructive" />}
-                                          {option === answer.correctAnswer && <CheckCircle className="h-5 w-5 text-primary" />}
-                                      </span>
-                                      <span className="flex-1">{option}</span>
-                                    </div>
-                                ))}
+                    {answers.map((answer, index) => {
+                        const question = questions.find(q => q.question === answer.question);
+                        if (!question) return null;
+
+                        return (
+                            <div key={index}>
+                                <p className="font-semibold">{index + 1}. {answer.question}</p>
+                                <div className="mt-2 space-y-2 text-sm">
+                                    {question.options.map(option => (
+                                        <div key={option} className={`flex items-start gap-3 ${getReviewOptionStyle(option, answer)}`}>
+                                        <span className="w-5 h-5 flex-shrink-0">
+                                            {option === answer.selectedAnswer && !answer.isCorrect && <XCircle className="h-5 w-5 text-destructive" />}
+                                            {option === answer.correctAnswer && <CheckCircle className="h-5 w-5 text-primary" />}
+                                        </span>
+                                        <span className="flex-1">{option}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {!answer.isCorrect && (
+                                    <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded-md">{question.explanation}</p>
+                                )}
                             </div>
-                            {!answer.isCorrect && (
-                                <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded-md">{questions[index].explanation}</p>
-                            )}
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
                  <div className="text-center mt-6">
                     <Button onClick={handleRestart}><Repeat className="mr-2 h-4 w-4"/> Restart Quiz</Button>
