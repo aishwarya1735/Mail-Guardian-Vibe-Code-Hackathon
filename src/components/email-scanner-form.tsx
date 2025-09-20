@@ -374,7 +374,7 @@ export function EmailScannerForm() {
           <Input
             name="email"
             type="email"
-            placeholder="your.google.email@gmail.com"
+            placeholder="your.email@example.com"
             required
             className="h-12 flex-grow text-base"
           />

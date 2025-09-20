@@ -15,7 +15,7 @@ export default function Home() {
                 Mail Guardian
               </h1>
               <p className="mt-4 max-w-md text-lg text-muted-foreground">
-                Enter your Google email to scan for security risks and receive
+                Enter your email to scan for security risks and receive
                 personalized, actionable tips to enhance your account's safety.
               </p>
             </header>
