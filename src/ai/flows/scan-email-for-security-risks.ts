@@ -120,7 +120,7 @@ Be critical of the timeline; an email address cannot be part of a breach that oc
 Based on your analysis, provide:
 1.  A total security score (0-100).
 2.  A score breakdown with at least 3 categories explaining how the total score was calculated (e.g., "Data Breaches", "Account Configuration", "Domain Security"). For each category, provide the score awarded, the max possible score, and a short description.
-3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021'). If found on the dark web, set the source to 'Dark Web'.
+3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021'). If found on the dark web, set the source to 'Dark Web'. For phishing or spam campaigns, if a source is known (e.g., a specific campaign name or attacking entity), include it as the source.
 4.  Actionable tips to improve security.
 5.  A security quiz with 2-3 fun and interesting questions about common security traps where a user might be misled. Each question should have multiple-choice options, a single correct answer, and a brief explanation.
 
