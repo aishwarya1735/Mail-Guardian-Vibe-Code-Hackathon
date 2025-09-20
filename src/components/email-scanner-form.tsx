@@ -77,6 +77,7 @@ export function EmailScannerForm() {
   }, []);
 
   const updateHistory = (newResult: ScanResult) => {
+      // Always add the new scan to the history
       const updatedHistory = [...scanHistory, newResult];
       setScanHistory(updatedHistory);
       try {
@@ -112,6 +113,7 @@ export function EmailScannerForm() {
     if (activeResult) {
       const updatedResult = { ...activeResult, quizAnswers: answers };
       setActiveResult(updatedResult);
+      // Update the specific result in the history, keeping all other scans
       const newHistory = scanHistory.map(item => item.timestamp === activeResult.timestamp ? updatedResult : item);
       setScanHistory(newHistory);
        try {
@@ -161,7 +163,7 @@ export function EmailScannerForm() {
     if(emailScanHistory.length < 2) return null;
 
     const chartData = emailScanHistory.map(item => ({
-        date: format(new Date(item.timestamp), "MMM d"),
+        date: new Date(item.timestamp).getTime(),
         score: item.data.securityScore
     }));
     
@@ -179,15 +181,25 @@ export function EmailScannerForm() {
                     <ResponsiveContainer>
                         <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
+                            <XAxis 
+                                dataKey="date"
+                                type="number"
+                                scale="time"
+                                domain={['dataMin', 'dataMax']}
+                                tickFormatter={(unixTime) => format(new Date(unixTime), "MMM d, HH:mm")}
+                                angle={-30}
+                                textAnchor="end"
+                                height={50}
+                            />
                             <YAxis domain={[0, 100]}/>
                             <Tooltip 
+                                labelFormatter={(label) => format(new Date(label), "MMM d, yyyy HH:mm")}
                                 contentStyle={{ 
                                     backgroundColor: 'hsl(var(--card))',
                                     borderColor: 'hsl(var(--border))'
                                 }} 
                             />
-                            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} activeDot={{ r: 8 }} />
+                            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} activeDot={{ r: 8 }} name="Score" />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
@@ -351,7 +363,9 @@ export function EmailScannerForm() {
     );
   }
 
-  const uniqueScans = [...new Map(scanHistory.map(item => [item.email, item])).values()];
+  // To display in the history list, we show the latest scan for each unique email.
+  const latestScansByEmail = [...new Map(scanHistory.slice().reverse().map(item => [item.email, item])).values()]
+      .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return (
     <>
@@ -370,7 +384,7 @@ export function EmailScannerForm() {
 
       {scanHistory.length > 0 && <GlobalSecurityDashboard scanHistory={scanHistory} />}
       
-      {uniqueScans.length > 0 && (
+      {latestScansByEmail.length > 0 && (
         <Card className="mt-8">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -381,7 +395,7 @@ export function EmailScannerForm() {
             </CardHeader>
             <CardContent>
                 <div className="space-y-2">
-                    {uniqueScans.map((item, index) => (
+                    {latestScansByEmail.map((item, index) => (
                         <button key={index} onClick={() => viewHistoryItem(item)} className="w-full text-left">
                             <div className="flex items-center justify-between rounded-md border p-3 hover:bg-accent hover:text-accent-foreground transition-colors">
                                 <div>
