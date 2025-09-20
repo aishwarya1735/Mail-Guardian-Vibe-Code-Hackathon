@@ -58,12 +58,8 @@ export function SecurityQuiz({ questions, initialAnswers, onQuizComplete }: Secu
         setIsSubmitted(false);
     } else {
         setView('summary');
-        onQuizComplete([...answers, {
-            question: currentQuestion.question,
-            selectedAnswer: selectedAnswer!,
-            correctAnswer: currentQuestion.correctAnswer,
-            isCorrect: isCorrect,
-        }]);
+        // The last answer is already added in handleSubmit, so we just pass the current answers.
+        onQuizComplete(answers);
     }
   };
   
