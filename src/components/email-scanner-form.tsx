@@ -5,10 +5,10 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { handleScanEmail } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowRight, CheckCircle, ChevronRight, Clock, HelpCircle, History, Info, KeyRound, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle, ChevronRight, Clock, HelpCircle, History, Info, KeyRound, Loader2, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SecurityScoreGauge } from "./security-score-gauge";
-import type { ScanEmailForSecurityRisksOutput, QuizAnswer } from "@/ai/flows/scan-email-for-security-risks";
+import type { ScanEmailForSecurityRisksOutput, QuizAnswer, Risk } from "@/ai/flows/scan-email-for-security-risks";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { SecurityQuiz } from "./security-quiz";
+import { GlobalSecurityDashboard } from "./global-security-dashboard";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { format } from "date-fns";
 
-type ScanResult = {
+
+export type ScanResult = {
     email: string;
     data: ScanEmailForSecurityRisksOutput;
     timestamp: string;
@@ -73,7 +77,7 @@ export function EmailScannerForm() {
   }, []);
 
   const updateHistory = (newResult: ScanResult) => {
-      const updatedHistory = [newResult, ...scanHistory.filter(item => item.email !== newResult.email)].slice(0, 5); // Keep last 5 scans
+      const updatedHistory = [...scanHistory, newResult];
       setScanHistory(updatedHistory);
       try {
         localStorage.setItem('scanHistory', JSON.stringify(updatedHistory));
@@ -108,7 +112,13 @@ export function EmailScannerForm() {
     if (activeResult) {
       const updatedResult = { ...activeResult, quizAnswers: answers };
       setActiveResult(updatedResult);
-      updateHistory(updatedResult);
+      const newHistory = scanHistory.map(item => item.timestamp === activeResult.timestamp ? updatedResult : item);
+      setScanHistory(newHistory);
+       try {
+        localStorage.setItem('scanHistory', JSON.stringify(newHistory));
+      } catch (error) {
+        console.error("Failed to save scan history to localStorage", error);
+      }
     }
   };
 
@@ -128,8 +138,12 @@ export function EmailScannerForm() {
     setCurrentView('results');
   }
 
-  const getRiskIcon = (risk: { description: string }) => {
+  const getRiskIcon = (risk: Risk) => {
     const lowerRisk = risk.description.toLowerCase();
+    const lowerSource = risk.source?.toLowerCase() || '';
+    if (lowerSource.includes("dark web")) {
+        return <KeyRound className="h-5 w-5 text-destructive" />;
+    }
     if (lowerRisk.includes("breach") || lowerRisk.includes("leaked") || lowerRisk.includes("compromised")) {
       return <KeyRound className="h-5 w-5 text-destructive" />;
     }
@@ -138,6 +152,49 @@ export function EmailScannerForm() {
     }
     return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
   };
+
+  const ScoreTrendChart = ({email}: {email: string}) => {
+    const emailScanHistory = scanHistory
+        .filter(item => item.email === email)
+        .sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+    if(emailScanHistory.length < 2) return null;
+
+    const chartData = emailScanHistory.map(item => ({
+        date: format(new Date(item.timestamp), "MMM d"),
+        score: item.data.securityScore
+    }));
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="text-primary"/>
+                    Score History
+                </CardTitle>
+                <CardDescription>Your security score trend over time for {email}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div style={{ width: '100%', height: 200 }}>
+                    <ResponsiveContainer>
+                        <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" />
+                            <YAxis domain={[0, 100]}/>
+                            <Tooltip 
+                                contentStyle={{ 
+                                    backgroundColor: 'hsl(var(--card))',
+                                    borderColor: 'hsl(var(--border))'
+                                }} 
+                            />
+                            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} activeDot={{ r: 8 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
 
   if (currentView === 'results' && activeResult) {
     const { data } = activeResult;
@@ -154,6 +211,8 @@ export function EmailScannerForm() {
             </div>
         </div>
         
+        <ScoreTrendChart email={activeResult.email} />
+
         <Card>
           <CardHeader>
             <CardTitle>Score Breakdown</CardTitle>
@@ -292,6 +351,8 @@ export function EmailScannerForm() {
     );
   }
 
+  const uniqueScans = [...new Map(scanHistory.map(item => [item.email, item])).values()];
+
   return (
     <>
       <form ref={formRef} action={formAction} className="space-y-4">
@@ -306,23 +367,26 @@ export function EmailScannerForm() {
           <SubmitButton />
         </div>
       </form>
-      {scanHistory.length > 0 && (
+
+      {scanHistory.length > 0 && <GlobalSecurityDashboard scanHistory={scanHistory} />}
+      
+      {uniqueScans.length > 0 && (
         <Card className="mt-8">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <History className="text-primary" />
                     Scan History
                 </CardTitle>
-                <CardDescription>View results from your previous scans.</CardDescription>
+                <CardDescription>View results from your previous scans. Click to see the full report.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-2">
-                    {scanHistory.map((item, index) => (
+                    {uniqueScans.map((item, index) => (
                         <button key={index} onClick={() => viewHistoryItem(item)} className="w-full text-left">
                             <div className="flex items-center justify-between rounded-md border p-3 hover:bg-accent hover:text-accent-foreground transition-colors">
                                 <div>
                                     <p className="font-medium">{item.email}</p>
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(item.timestamp).toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Last scanned: {new Date(item.timestamp).toLocaleString()}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="font-semibold">{item.data.securityScore}/100</span>

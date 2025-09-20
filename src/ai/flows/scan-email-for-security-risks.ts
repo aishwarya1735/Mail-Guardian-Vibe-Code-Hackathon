@@ -39,8 +39,9 @@ const RiskSchema = z.object({
   source: z
     .string()
     .optional()
-    .describe('The source of the risk, if available (e.g., a specific data breach).'),
+    .describe('The source of the risk, if available (e.g., a specific data breach or "Dark Web").'),
 });
+export type Risk = z.infer<typeof RiskSchema>;
 
 const QuizQuestionSchema = z.object({
   question: z.string().describe('The quiz question.'),
@@ -106,6 +107,7 @@ Email Address: {{{email}}}
 
 Consider the following factors when determining the security score and risks:
 - Data breaches involving the email address or associated services (e.g., Have I Been Pwned).
+- Discoveries on the dark web.
 - Phishing incidents targeting the email address or associated services.
 - Known spam campaigns involving the email address.
 - Weak passwords or compromised credentials associated with the email address.
@@ -115,7 +117,7 @@ Consider the following factors when determining the security score and risks:
 Based on your analysis, provide:
 1.  A total security score (0-100).
 2.  A score breakdown with at least 3 categories explaining how the total score was calculated (e.g., "Data Breaches", "Account Configuration", "Domain Security"). For each category, provide the score awarded, the max possible score, and a short description.
-3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021').
+3.  A list of identified risks. For data breaches, if known, include the source of the breach (e.g., 'LinkedIn 2021'). If found on the dark web, set the source to 'Dark Web'.
 4.  Actionable tips to improve security.
 5.  A security quiz with 2-3 fun and interesting questions about common security traps where a user might be misled. Each question should have multiple-choice options, a single correct answer, and a brief explanation.
 
