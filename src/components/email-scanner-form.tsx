@@ -160,7 +160,7 @@ export function EmailScannerForm() {
         .filter(item => item.email === email)
         .sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    if(emailScanHistory.length < 2) return null;
+    if(emailScanHistory.length < 1) return null;
 
     const chartData = emailScanHistory.map(item => ({
         date: new Date(item.timestamp).getTime(),
@@ -416,3 +416,5 @@ export function EmailScannerForm() {
     </>
   );
 }
+
+    
