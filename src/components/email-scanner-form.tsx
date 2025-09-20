@@ -10,6 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SecurityScoreGauge } from "./security-score-gauge";
 import type { ScanEmailForSecurityRisksOutput } from "@/ai/flows/scan-email-for-security-risks";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 
 const initialState: {
   data: ScanEmailForSecurityRisksOutput | null;
@@ -78,6 +82,9 @@ export function EmailScannerForm() {
   };
 
   if (showResults && state.data) {
+    const actionableTips = state.data.actionableTips.filter(tip => !tip.toLowerCase().includes("consider") && !tip.toLowerCase().includes("be wary"));
+    const generalTips = state.data.actionableTips.filter(tip => tip.toLowerCase().includes("consider") || tip.toLowerCase().includes("be wary"));
+
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="flex flex-col items-center justify-center gap-8 text-center">
@@ -91,56 +98,92 @@ export function EmailScannerForm() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-                <ShieldAlert className="text-accent"/>
-                Identified Risks
+                <ShieldCheck className="text-primary"/>
+                Your Security Checklist
             </CardTitle>
-            <CardDescription>Potential vulnerabilities found associated with your email.</CardDescription>
+            <CardDescription>Complete these actions to improve your security score.</CardDescription>
           </CardHeader>
           <CardContent>
-            {state.data.risksIdentified.length > 0 ? (
-                <ul className="space-y-3">
-                {state.data.risksIdentified.map((risk, index) => (
-                    <li key={index} className="flex items-start gap-4">
-                        <div className="mt-1">{getRiskIcon(risk)}</div>
-                        <span className="flex-1 text-sm">{risk}</span>
-                    </li>
-                ))}
-                </ul>
-            ) : (
-                <div className="flex items-center gap-3 text-muted-foreground">
-                    <CheckCircle className="h-5 w-5 text-primary"/>
-                    <p>No major security risks found. Well done!</p>
+            {actionableTips.length > 0 ? (
+                <div className="space-y-4">
+                  {actionableTips.map((tip, index) => (
+                    <div key={index} className="flex items-start gap-4">
+                      <Checkbox id={`tip-${index}`} className="mt-1" />
+                      <Label htmlFor={`tip-${index}`} className="flex-1 text-sm font-normal text-foreground">{tip}</Label>
+                    </div>
+                  ))}
                 </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <Info className="text-primary"/>
-                Actionable Security Tips
-            </CardTitle>
-            <CardDescription>Follow these steps to improve your email security.</CardDescription>
-          </CardHeader>
-          <CardContent>
-             {state.data.actionableTips.length > 0 ? (
-                <ul className="space-y-3">
-                {state.data.actionableTips.map((tip, index) => (
-                    <li key={index} className="flex items-start gap-4">
-                    <div className="mt-1"><ShieldCheck className="h-5 w-5 text-primary" /></div>
-                    <span className="flex-1 text-sm">{tip}</span>
-                    </li>
-                ))}
-                </ul>
             ) : (
                  <div className="flex items-center gap-3 text-muted-foreground">
                     <CheckCircle className="h-5 w-5 text-primary"/>
-                    <p>Your security posture is strong. Keep it up!</p>
+                    <p>Your security posture is strong. No immediate actions required!</p>
                 </div>
             )}
           </CardContent>
         </Card>
+
+        <Separator />
+
+        <div className="space-y-4">
+            <div className="text-center">
+                <h3 className="text-2xl font-bold">Security Insights</h3>
+                <p className="text-muted-foreground">Learn more about the risks we found and other security best practices.</p>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger className="font-semibold">
+                         <div className="flex items-center gap-2">
+                            <ShieldAlert className="text-accent"/>
+                            Identified Risks
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                         {state.data.risksIdentified.length > 0 ? (
+                            <ul className="space-y-3 pt-2">
+                            {state.data.risksIdentified.map((risk, index) => (
+                                <li key={index} className="flex items-start gap-4">
+                                    <div className="mt-1">{getRiskIcon(risk)}</div>
+                                    <span className="flex-1 text-sm">{risk}</span>
+                                </li>
+                            ))}
+                            </ul>
+                        ) : (
+                            <div className="flex items-center gap-3 text-muted-foreground pt-2">
+                                <CheckCircle className="h-5 w-5 text-primary"/>
+                                <p>No major security risks found. Well done!</p>
+                            </div>
+                        )}
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                    <AccordionTrigger className="font-semibold">
+                        <div className="flex items-center gap-2">
+                            <Info className="text-primary"/>
+                            General Security Tips
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        {generalTips.length > 0 ? (
+                            <ul className="space-y-3 pt-2">
+                            {generalTips.map((tip, index) => (
+                                <li key={index} className="flex items-start gap-4">
+                                <div className="mt-1"><ShieldCheck className="h-5 w-5 text-primary" /></div>
+                                <span className="flex-1 text-sm">{tip}</span>
+                                </li>
+                            ))}
+                            </ul>
+                        ) : (
+                            <div className="flex items-center gap-3 text-muted-foreground pt-2">
+                                <CheckCircle className="h-5 w-5 text-primary"/>
+                                <p>Your security posture is strong. Keep it up!</p>
+                            </div>
+                        )}
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </div>
+
 
         <div className="text-center pt-4">
             <Button onClick={handleScanAnother} variant="outline">
